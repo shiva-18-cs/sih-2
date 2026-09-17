@@ -1,0 +1,6 @@
+{
+  "name": "CMPDI / CIL Intelligence Platform",
+  "description": "AI-powered geological, mining, OCR, cross-document conflict detection and reporting platform for CMPDI/CIL subsidiaries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
