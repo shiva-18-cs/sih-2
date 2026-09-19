@@ -9,7 +9,7 @@ export default function ConflictBadge({ severity = 'warning', status }: Conflict
   if (status === 'resolved') {
     return (
       <span className="badge badge-success">
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669', display: 'inline-block' }} />
         Resolved
       </span>
     );
@@ -18,7 +18,7 @@ export default function ConflictBadge({ severity = 'warning', status }: Conflict
   if (severity === 'critical') {
     return (
       <span className="badge badge-critical">
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FB7185', display: 'inline-block' }} />
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DC2626', display: 'inline-block' }} />
         Critical Discrepancy
       </span>
     );
@@ -27,7 +27,7 @@ export default function ConflictBadge({ severity = 'warning', status }: Conflict
   if (severity === 'info') {
     return (
       <span className="badge badge-info">
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38BDF8', display: 'inline-block' }} />
+        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#2563EB', display: 'inline-block' }} />
         Info / Observation
       </span>
     );
@@ -35,7 +35,7 @@ export default function ConflictBadge({ severity = 'warning', status }: Conflict
 
   return (
     <span className="badge badge-warning">
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#D97706', display: 'inline-block' }} />
       Warning Variance
     </span>
   );

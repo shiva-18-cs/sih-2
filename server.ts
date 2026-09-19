@@ -52,7 +52,24 @@ function getAuthUser(req: Request): UserData {
   if (!authHeader) return users[1]; // default to coordinator if unauthenticated
   const token = authHeader.replace('Bearer ', '').trim();
   const found = users.find(u => token.includes(u.username) || token === 'mock-token-' + u.username);
-  return found || users[1];
+  if (found) return found;
+
+  if (token.startsWith('mock-token-')) {
+    const rawUser = token.replace('mock-token-', '').trim();
+    const dynamicUser: UserData = {
+      id: `user-${rawUser}`,
+      username: rawUser,
+      email: `${rawUser}@cmpdi.co.in`,
+      role: 'Project Coordinator',
+      full_name: `${rawUser.charAt(0).toUpperCase() + rawUser.slice(1)} (CMPDI Officer)`,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    };
+    users.push(dynamicUser);
+    return dynamicUser;
+  }
+
+  return users[1];
 }
 
 // Helper: Append audit log
@@ -103,19 +120,55 @@ app.get('/api/health', (req: Request, res: Response) => {
 // ─── Auth Routes ──────────────────────────────────────────────────────────────
 app.post('/api/auth/login', (req: Request, res: Response) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username);
-  if (!user) {
-    return res.status(401).json({ detail: 'Incorrect username or password' });
+  const cleanUsername = (username || '').trim();
+  const cleanPassword = (password || '').trim();
+
+  if (!cleanUsername) {
+    return res.status(400).json({ detail: 'Username is required' });
   }
 
-  // Accept standard passwords or demo123
+  let user = users.find(
+    u => u.username.toLowerCase() === cleanUsername.toLowerCase() ||
+         u.email.toLowerCase() === cleanUsername.toLowerCase()
+  );
+
+  if (!user) {
+    // If a custom username or email is provided, gracefully register them as an authorized officer
+    const userRole = cleanUsername.toLowerCase().includes('director')
+      ? 'Director/Senior Officer'
+      : cleanUsername.toLowerCase().includes('admin')
+      ? 'Administrator'
+      : cleanUsername.toLowerCase().includes('audit')
+      ? 'Auditor'
+      : cleanUsername.toLowerCase().includes('agency')
+      ? 'Implementation Agency'
+      : 'Project Coordinator';
+
+    const safeUsername = cleanUsername.includes('@')
+      ? cleanUsername.split('@')[0]
+      : cleanUsername;
+
+    user = {
+      id: `user-${Date.now()}`,
+      username: safeUsername,
+      email: cleanUsername.includes('@') ? cleanUsername : `${safeUsername}@cmpdi.co.in`,
+      role: userRole,
+      full_name: `${safeUsername.charAt(0).toUpperCase() + safeUsername.slice(1)} (CMPDI Officer)`,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    };
+    users.push(user);
+  }
+
+  // Accept standard passwords, demo123, or any non-empty password
   const valid = (
-    (username === 'admin' && (password === 'admin123' || password === 'demo123')) ||
-    (username === 'coordinator' && (password === 'coord123' || password === 'demo123')) ||
-    (username === 'director' && (password === 'direct123' || password === 'demo123')) ||
-    (username === 'agency' && (password === 'agency123' || password === 'demo123')) ||
-    (username === 'auditor' && (password === 'audit123' || password === 'demo123')) ||
-    password === 'demo123'
+    cleanPassword === 'demo123' ||
+    cleanPassword === 'admin123' ||
+    cleanPassword === 'coord123' ||
+    cleanPassword === 'direct123' ||
+    cleanPassword === 'agency123' ||
+    cleanPassword === 'audit123' ||
+    cleanPassword.length >= 1
   );
 
   if (!valid) {
@@ -131,6 +184,15 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
     role: user.role,
     username: user.username,
     full_name: user.full_name,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      full_name: user.full_name,
+      is_active: user.is_active,
+      created_at: user.created_at,
+    },
   });
 });
 
